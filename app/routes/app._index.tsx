@@ -4,6 +4,12 @@ import { Page, Card, BlockStack } from "@shopify/polaris";
 import ChatWindow from "../components/ChatWindow";
 import ChatInput from "../components/ChatInput";
 import { sendChatMessage, getChatHistory } from "../services/chatbot";
+import { authenticate } from "../shopify.server";
+
+export const loader = async ({ request }: { request: Request }) => {
+  await authenticate.admin(request);
+  return null;
+};
 
 type Message = {
   role: "user" | "bot";
