@@ -19,20 +19,28 @@ export default function AppIndex() {
     try {
       setLoading(true);
 
-      const res = await fetch("http://localhost:8000/chat", {
+      const res = await fetch("https://fastapi-bot-r2g1.onrender.com/graphql", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ message: input }),
+        body: JSON.stringify({
+          query: `
+            mutation SendMessage($text: String!) {
+              sendMessage(text: $text) {
+                bot
+              }
+            }
+          `,
+          variables: {
+            text: input,
+          },
+        }),
       });
 
-      if (!res.ok) {
-        throw new Error("Request failed");
-      }
+      const result = await res.json();
 
-      const data = await res.json();
-      setResponse(data.reply);
+      setResponse(result.data.sendMessage.bot);
     } catch (error) {
       console.error(error);
       setResponse("Error contacting bot server.");
