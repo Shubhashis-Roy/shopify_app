@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Page, Card, BlockStack } from "@shopify/polaris";
 
 import ChatWindow from "../components/ChatWindow";
 import ChatInput from "../components/ChatInput";
-import { sendChatMessage } from "../services/chatbot";
+import { sendChatMessage, getChatHistory } from "../services/chatbot";
 
 type Message = {
   role: "user" | "bot";
@@ -14,6 +14,25 @@ export default function AppIndex() {
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const loadHistory = async () => {
+      try {
+        const history = await getChatHistory();
+
+        const formattedMessages = history.reverse().flatMap((msg: any) => [
+          { role: "user", text: msg.user },
+          { role: "bot", text: msg.bot },
+        ]);
+
+        setMessages(formattedMessages);
+      } catch (error) {
+        console.error("Failed to load history", error);
+      }
+    };
+
+    loadHistory();
+  }, []);
 
   const sendMessage = async () => {
     if (!input.trim()) return;
