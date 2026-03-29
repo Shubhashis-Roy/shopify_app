@@ -1,18 +1,20 @@
-<div id="chatbot-root"></div>
+<div id="chatbot-root">
+Test Icon
+</div>
 
 <script>
   (function () {
     var script = document.createElement('script');
-    script.src = "https://shopify-app-95ky.onrender.com/widget.js";
+    script.src = "https://shopify-app-95ky.onrender.com/widget";
     script.async = true;
     document.body.appendChild(script);
   })();
 </script>
 
 {% schema %}
-{
-  "name": "Chatbot",
-  "target": "body",
-  "settings": []
-}
+  {
+    "name": "App Embed",
+    "target": "body",
+    "settings": []
+  }
 {% endschema %}
