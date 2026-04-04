@@ -1,5 +1,5 @@
 import { json } from "@remix-run/node";
-import { shopify } from "~/shopify.server";
+import shopify from "../shopify.server";
 
 const FASTAPI_URL = "https://fastapi-bot-r2g1.onrender.com/graphql";
 
