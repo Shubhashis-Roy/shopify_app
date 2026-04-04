@@ -9,12 +9,12 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       // --- Create launcher button ---
       const btn = document.createElement('div');
       btn.id = 'chatbot-launcher';
-btn.innerHTML = \`
-<div style="position:relative;width:24px;height:24px;">
-  <span style="font-size:18px;">👟</span>
-  <span style="position:absolute;bottom:-2px;right:-4px;font-size:12px;">💬</span>
-</div>
-\`;
+      btn.innerHTML = \`
+      <div style="position:relative;width:24px;height:24px;">
+        <span style="font-size:18px;">👟</span>
+        <span style="position:absolute;bottom:-2px;right:-4px;font-size:12px;">💬</span>
+      </div>
+      \`;
       Object.assign(btn.style, {
         position: 'fixed',
         bottom: '20px',
