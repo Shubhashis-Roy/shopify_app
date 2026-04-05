@@ -9,18 +9,16 @@ import { addDocumentResponseHeaders } from "./shopify.server";
 // Helper to set dynamic CSP
 function setDynamicCSP(request: Request, headers: Headers) {
   const url = new URL(request.url);
-  const shop =
-    url.searchParams.get("shop") ||
-    request.headers.get("x-shopify-shop-domain");
+  const shop = url.searchParams.get("shop");
 
-  let csp =
-    "frame-ancestors https://*.myshopify.com https://admin.shopify.com https://shopify-app-95ky.onrender.com;";
+  let csp = `frame-ancestors https://*.myshopify.com https://admin.shopify.com https://shopify-app-95ky.onrender.com;`;
 
   if (shop && shop.includes(".myshopify.com")) {
     csp = `frame-ancestors https://${shop} https://admin.shopify.com https://shopify-app-95ky.onrender.com;`;
   }
 
   headers.set("Content-Security-Policy", csp);
+  headers.set("X-Frame-Options", "ALLOW-FROM https://admin.shopify.com");
 }
 
 export const streamTimeout = 5000;

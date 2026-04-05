@@ -8,21 +8,24 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
   const headers = new Headers();
 
-  if (shop) {
-    // Dynamic frame-ancestors - This is the key fix
+  // Dynamic + safe CSP (this is the most reliable pattern)
+  if (shop?.includes(".myshopify.com")) {
     headers.set(
       "Content-Security-Policy",
       `frame-ancestors https://${shop} https://admin.shopify.com https://shopify-app-95ky.onrender.com;`,
     );
   } else {
-    // Fallback (should rarely happen)
+    // Very broad fallback (helps during testing)
     headers.set(
       "Content-Security-Policy",
-      `frame-ancestors https://*.myshopify.com https://admin.shopify.com https://shopify-app-95ky.onrender.com;`,
+      `frame-ancestors https://*.myshopify.com https://admin.shopify.com https://shopify-app-95ky.onrender.com https://*.onrender.com;`,
     );
   }
 
-  return new Response(null, { headers }); // loader returns null as before
+  // Important: Also allow the iframe to be embedded by itself
+  headers.set("X-Frame-Options", "ALLOW-FROM https://admin.shopify.com");
+
+  return new Response(null, { headers });
 };
 
 export default function Chatbot() {
@@ -30,7 +33,7 @@ export default function Chatbot() {
   const shop = params.get("shop");
 
   return (
-    <div>
+    <div style={{ padding: "10px", height: "100vh", background: "#fff" }}>
       <h3
         style={{
           textAlign: "center",

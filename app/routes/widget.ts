@@ -9,18 +9,22 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   try {
     const js = `
       (function () {
-        if (document.getElementById('chatbot-launcher')) return;
+        if (document.getElementById('chatbot-launcher')) {
+          console.log('%c[Chatbot Widget v12] Already loaded - skipping', 'color: orange; font-weight: bold');
+          return;
+        }
 
-        function getShop(retries = 30) {
+        function getShop(retries = 40) {
           return new Promise((resolve) => {
             const interval = setInterval(() => {
               const shop = window.SHOPIFY_CHATBOT_CONFIG?.shop;
-              if (shop && shop !== "undefined" && shop.includes(".myshopify.com")) {
+              if (shop && shop.includes('.myshopify.com')) {
                 clearInterval(interval);
                 resolve(shop);
               }
               if (--retries <= 0) {
                 clearInterval(interval);
+                console.warn('[Chatbot Widget] Could not detect shop domain');
                 resolve(null);
               }
             }, 80);
@@ -29,9 +33,9 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
         (async function () {
           const shop = await getShop();
-          console.log("SHOP FROM WIDGET:", shop);
+          console.log('%c[Chatbot Widget v12] Loaded - Shop:', shop || 'unknown', 'color: green; font-weight: bold');
 
-          // --- Button ---
+          // --- Launcher Button ---
           const btn = document.createElement('div');
           btn.id = 'chatbot-launcher';
           btn.innerHTML = \`
@@ -55,16 +59,18 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
             justifyContent: 'center',
             cursor: 'pointer',
             zIndex: '9999',
-            boxShadow: '0 2px 10px rgba(0,0,0,0.3)'
+            boxShadow: '0 2px 10px rgba(0,0,0,0.3)',
+            userSelect: 'none'
           });
 
           document.body.appendChild(btn);
 
-          // --- iframe ---
+          // --- Iframe ---
           const iframe = document.createElement('iframe');
           iframe.src = 'https://shopify-app-95ky.onrender.com/chatbot?shop=' + 
                        encodeURIComponent(shop || '');
           iframe.id = 'chatbot-iframe';
+          iframe.allow = "clipboard-write";   // Helpful for chat input
 
           Object.assign(iframe.style, {
             position: 'fixed',
@@ -81,10 +87,17 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
           document.body.appendChild(iframe);
 
-          // --- toggle ---
+          // --- Toggle Functionality ---
           btn.onclick = function () {
-            iframe.style.display = iframe.style.display === 'none' ? 'block' : 'none';
+            iframe.style.display = (iframe.style.display === 'none') ? 'block' : 'none';
           };
+
+          // Optional: Close when clicking outside (nice UX)
+          document.addEventListener('click', function(e) {
+            if (!btn.contains(e.target) && !iframe.contains(e.target)) {
+              iframe.style.display = 'none';
+            }
+          });
         })();
       })();
     `;
@@ -92,12 +105,13 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     return new Response(js, {
       headers: {
         "Content-Type": "application/javascript; charset=utf-8",
-        "Cache-Control": "no-store, no-cache, must-revalidate",
+        "Cache-Control":
+          "no-store, no-cache, must-revalidate, proxy-revalidate",
       },
     });
   } catch (error) {
     console.error("Widget load error:", error);
-    return new Response("console.error('Chatbot widget failed to load');", {
+    return new Response("console.error('[Chatbot Widget] Failed to load');", {
       headers: { "Content-Type": "application/javascript; charset=utf-8" },
     });
   }
