@@ -10,7 +10,7 @@ export const loader = () => {
 export const headers = () => {
   return {
     "Content-Security-Policy":
-      "frame-ancestors https://*.myshopify.com https://admin.shopify.com;",
+      "frame-ancestors https://*.myshopify.com https://admin.shopify.com https://shopify-app-95ky.onrender.com;",
   };
 };
 
