@@ -1,5 +1,7 @@
 import ChatBotCore from "app/components/ChatBotCore";
-import { useSearchParams } from "@remix-run/react";
+// import { useSearchParams } from "@remix-run/react";
+import { useSearchParams } from "react-router";
+// import { useSearchParams } from "@shopify/shopify-app-react-router";
 
 export default function Chatbot() {
   const [params] = useSearchParams();
