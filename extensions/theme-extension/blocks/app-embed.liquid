@@ -4,12 +4,12 @@ Test Icon
 
 <script>
   window.SHOPIFY_CHATBOT_CONFIG = {
-    shop: "{{ shop.domain }}"
+    shop: "{{ request.host }}"
   };
 
   (function () {
     var script = document.createElement('script');
-    script.src = "https://shopify-app-95ky.onrender.com/widget";
+    script.src = "https://shopify-app-95ky.onrender.com/widget?v=6";
     script.async = true;
     document.body.appendChild(script);
   })();
