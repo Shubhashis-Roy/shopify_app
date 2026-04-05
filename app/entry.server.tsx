@@ -12,20 +12,22 @@ export default async function handleRequest(
   request: Request,
   responseStatusCode: number,
   responseHeaders: Headers,
-  reactRouterContext: EntryContext
+  reactRouterContext: EntryContext,
 ) {
   addDocumentResponseHeaders(request, responseHeaders);
+
+  // ✅ ADD THIS (CRITICAL)
+  responseHeaders.set(
+    "Content-Security-Policy",
+    "frame-ancestors https://*.myshopify.com https://admin.shopify.com;",
+  );
+
   const userAgent = request.headers.get("user-agent");
-  const callbackName = isbot(userAgent ?? '')
-    ? "onAllReady"
-    : "onShellReady";
+  const callbackName = isbot(userAgent ?? "") ? "onAllReady" : "onShellReady";
 
   return new Promise((resolve, reject) => {
     const { pipe, abort } = renderToPipeableStream(
-      <ServerRouter
-        context={reactRouterContext}
-        url={request.url}
-      />,
+      <ServerRouter context={reactRouterContext} url={request.url} />,
       {
         [callbackName]: () => {
           const body = new PassThrough();
@@ -36,7 +38,7 @@ export default async function handleRequest(
             new Response(stream, {
               headers: responseHeaders,
               status: responseStatusCode,
-            })
+            }),
           );
           pipe(body);
         },
@@ -47,7 +49,7 @@ export default async function handleRequest(
           responseStatusCode = 500;
           console.error(error);
         },
-      }
+      },
     );
 
     // Automatically timeout the React renderer after 6 seconds, which ensures
