@@ -3,67 +3,90 @@ import type { LoaderFunctionArgs } from "@remix-run/node";
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const js = `
     (function () {
-      // prevent duplicate injection
       if (document.getElementById('chatbot-launcher')) return;
 
-      // --- Create launcher button ---
-      const btn = document.createElement('div');
-      btn.id = 'chatbot-launcher';
-      btn.innerHTML = \`
-      <div style="position:relative;width:24px;height:24px;">
-        <span style="font-size:18px;">👟</span>
-        <span style="position:absolute;bottom:-2px;right:-4px;font-size:12px;">💬</span>
-      </div>
-      \`;
-      Object.assign(btn.style, {
-        position: 'fixed',
-        bottom: '20px',
-        right: '20px',
-        width: '50px',
-        height: '50px',
-        borderRadius: '50%',
-        background: '#000',
-        color: '#fff',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        cursor: 'pointer',
-        zIndex: '9999'
-      });
+      // ✅ helper to wait for shop
+      function getShop(retries = 20) {
+        return new Promise((resolve) => {
+          const interval = setInterval(() => {
+            const shop = window.SHOPIFY_CHATBOT_CONFIG?.shop;
 
-      document.body.appendChild(btn);
+            if (shop && shop !== "undefined") {
+              clearInterval(interval);
+              resolve(shop);
+            }
 
-      // --- Create iframe (hidden initially) ---
-      const iframe = document.createElement('iframe');
+            if (--retries <= 0) {
+              clearInterval(interval);
+              resolve(null);
+            }
+          }, 100);
+        });
+      }
 
-      const shop = window.SHOPIFY_CHATBOT_CONFIG?.shop;
+      (async function () {
+        const shop = await getShop();
 
-      iframe.src =
-        'https://shopify-app-95ky.onrender.com/chatbot?shop=' +
-        encodeURIComponent(shop);
+        console.log("SHOP FROM WIDGET:", shop); // 🔍 DEBUG
 
-      iframe.id = 'chatbot-iframe';
+        // --- Create launcher button ---
+        const btn = document.createElement('div');
+        btn.id = 'chatbot-launcher';
+        btn.innerHTML = \`
+        <div style="position:relative;width:24px;height:24px;">
+          <span style="font-size:18px;">👟</span>
+          <span style="position:absolute;bottom:-2px;right:-4px;font-size:12px;">💬</span>
+        </div>
+        \`;
 
-      Object.assign(iframe.style, {
-        position: 'fixed',
-        bottom: '80px',
-        right: '20px',
-        width: '350px',
-        height: '500px',
-        border: 'none',
-        zIndex: '9999',
-        display: 'none',
-        borderRadius: '10px',
-        boxShadow: '0 4px 12px rgba(0,0,0,0.2)'
-      });
+        Object.assign(btn.style, {
+          position: 'fixed',
+          bottom: '20px',
+          right: '20px',
+          width: '50px',
+          height: '50px',
+          borderRadius: '50%',
+          background: '#000',
+          color: '#fff',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          cursor: 'pointer',
+          zIndex: '9999'
+        });
 
-      document.body.appendChild(iframe);
+        document.body.appendChild(btn);
 
-      // --- Toggle logic ---
-      btn.onclick = function () {
-        iframe.style.display =
-          iframe.style.display === 'none' ? 'block' : 'none';
-      };
+        // --- Create iframe ---
+        const iframe = document.createElement('iframe');
+
+        iframe.src =
+          'https://shopify-app-95ky.onrender.com/chatbot?shop=' +
+          encodeURIComponent(shop || '');
+
+        iframe.id = 'chatbot-iframe';
+
+        Object.assign(iframe.style, {
+          position: 'fixed',
+          bottom: '80px',
+          right: '20px',
+          width: '350px',
+          height: '500px',
+          border: 'none',
+          zIndex: '9999',
+          display: 'none',
+          borderRadius: '10px',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.2)'
+        });
+
+        document.body.appendChild(iframe);
+
+        // --- Toggle ---
+        btn.onclick = function () {
+          iframe.style.display =
+            iframe.style.display === 'none' ? 'block' : 'none';
+        };
+      })();
     })();
   `;
 
