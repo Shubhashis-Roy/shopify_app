@@ -1,6 +1,6 @@
 import type { LoaderFunctionArgs } from "@remix-run/node";
 
-// ✅ Ensure Remix always treats this as a JS resource route
+// Ensure JS response
 export const headers = () => ({
   "Content-Type": "application/javascript; charset=utf-8",
   "Cache-Control": "no-store",
@@ -33,17 +33,18 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
         (async function () {
           const shop = await getShop();
 
-          console.log("SHOP FROM WIDGET:", shop);
+          console.log("[CHATBOT] shop:", shop);
 
-          // --- Button ---
+          if (!shop) {
+            console.warn("[CHATBOT] shop is NULL - fallback may be required");
+          }
+
+          // ---------------------------
+          // Button
+          // ---------------------------
           const btn = document.createElement('div');
           btn.id = 'chatbot-launcher';
-          btn.innerHTML = \`
-            <div style="position:relative;width:24px;height:24px;">
-              <span style="font-size:18px;">👟</span>
-              <span style="position:absolute;bottom:-2px;right:-4px;font-size:12px;">💬</span>
-            </div>
-          \`;
+          btn.innerHTML = "💬";
 
           Object.assign(btn.style, {
             position: 'fixed',
@@ -63,14 +64,31 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
           document.body.appendChild(btn);
 
-          // --- iframe ---
+          // ---------------------------
+          // iframe
+          // ---------------------------
           const iframe = document.createElement('iframe');
 
-          iframe.src =
+          const iframeSrc =
             'https://shopify-app-95ky.onrender.com/chatbot?shop=' +
             encodeURIComponent(shop || '');
 
+          console.log("[CHATBOT] iframe src:", iframeSrc);
+
+          iframe.src = iframeSrc;
           iframe.id = 'chatbot-iframe';
+
+          // ✅ FIX 4 — sandbox (CRITICAL for Shopify)
+        iframe.setAttribute(
+        "sandbox",
+        "allow-scripts allow-same-origin allow-forms allow-popups allow-top-navigation-by-user-activation"
+        );
+
+          // ✅ FIX 5 — allow permissions
+          iframe.setAttribute(
+            "allow",
+            "clipboard-write; microphone; camera"
+          );
 
           Object.assign(iframe.style, {
             position: 'fixed',
@@ -85,18 +103,33 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
             boxShadow: '0 4px 12px rgba(0,0,0,0.2)'
           });
 
-          document.body.appendChild(iframe);
+          // ✅ FIX 3 — Delay iframe injection
+          setTimeout(() => {
+            document.body.appendChild(iframe);
+            console.log("[CHATBOT] iframe appended to DOM");
+          }, 500);
 
-          // --- toggle ---
+          // ---------------------------
+          // Toggle
+          // ---------------------------
           btn.onclick = function () {
             iframe.style.display =
               iframe.style.display === 'none' ? 'block' : 'none';
           };
+
+          // Debug events
+          iframe.onload = () => {
+            console.log("[CHATBOT] iframe loaded successfully");
+          };
+
+          iframe.onerror = () => {
+            console.error("[CHATBOT] iframe failed to load");
+          };
+
         })();
       })();
     `;
 
-    // ✅ Force correct response type
     return new Response(js, {
       headers: {
         "Content-Type": "application/javascript; charset=utf-8",
@@ -104,7 +137,6 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       },
     });
   } catch (error) {
-    // ✅ Hard guard (prevents Shopify breaking)
     return new Response("console.error('Chatbot widget failed to load');", {
       headers: {
         "Content-Type": "application/javascript; charset=utf-8",
