@@ -9,7 +9,7 @@ type Message = {
   text: string;
 };
 
-export default function ChatBotCore() {
+export default function ChatBotCore({ shop }: { shop: string | null }) {
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
@@ -44,8 +44,7 @@ export default function ChatBotCore() {
     try {
       setLoading(true);
 
-      const botReply = await sendChatMessage(userMessage);
-
+      const botReply = await sendChatMessage(userMessage, shop);
       setMessages((prev) => [...prev, { role: "bot", text: botReply }]);
     } catch (error) {
       console.error(error);

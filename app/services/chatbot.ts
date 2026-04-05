@@ -1,8 +1,8 @@
 // const BASE_URL = "https://fastapi-bot-r2g1.onrender.com/graphql";
-const BASE_URL = "/api/chat";
+// const BASE_URL = "/api/chat";
 
 export async function getChatHistory() {
-  const res = await fetch(BASE_URL, {
+  const res = await fetch("https://fastapi-bot-r2g1.onrender.com/graphql", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -24,7 +24,8 @@ export async function getChatHistory() {
   return result.data.chatHistory;
 }
 
-export async function sendChatMessage(text: string) {
+export async function sendChatMessage(text: string, shop: string | null) {
+  console.log("SHOP SENT: ================", shop);
   const res = await fetch("/api/chat", {
     method: "POST",
     headers: {
@@ -32,6 +33,7 @@ export async function sendChatMessage(text: string) {
     },
     body: JSON.stringify({
       message: text,
+      shop: shop,
     }),
   });
 

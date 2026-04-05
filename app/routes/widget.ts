@@ -35,7 +35,13 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
       // --- Create iframe (hidden initially) ---
       const iframe = document.createElement('iframe');
-      iframe.src = 'https://shopify-app-95ky.onrender.com/chatbot';
+
+      const shop = window.SHOPIFY_CHATBOT_CONFIG?.shop;
+
+      iframe.src =
+        'https://shopify-app-95ky.onrender.com/chatbot?shop=' +
+        encodeURIComponent(shop);
+
       iframe.id = 'chatbot-iframe';
 
       Object.assign(iframe.style, {

@@ -4,12 +4,17 @@ import shopify from "../shopify.server";
 const FASTAPI_URL = "https://fastapi-bot-r2g1.onrender.com/graphql";
 
 export async function action({ request }) {
-  const { admin } = await shopify.authenticate.admin(request);
-
   const body = await request.json();
-  const userMessage = body.message;
+  const { message, shop } = body;
 
-  // 🔹 Fetch products from Shopify
+  if (!shop) {
+    return json({ error: "Missing shop" }, { status: 400 });
+  }
+
+  // ✅ Use offline session (NO ADMIN AUTH)
+  const { admin } = await shopify.unauthenticated.admin(shop);
+
+  // 🔹 Fetch products
   const response = await admin.graphql(`
     {
       products(first: 10) {
@@ -30,7 +35,7 @@ export async function action({ request }) {
   const data = await response.json();
   const products = data.data.products.nodes;
 
-  // 🔹 Call FastAPI GraphQL
+  // 🔹 Send to FastAPI
   const fastapiRes = await fetch(FASTAPI_URL, {
     method: "POST",
     headers: {
@@ -39,14 +44,14 @@ export async function action({ request }) {
     body: JSON.stringify({
       query: `
         mutation SendMessage($text: String!, $products: String!) {
-        sendMessage(text: $text, products: $products) {
+          sendMessage(text: $text, products: $products) {
             bot
+          }
         }
-        }
-    `,
+      `,
       variables: {
-        text: userMessage,
-        products: JSON.stringify(products), // 🔥 important
+        text: message,
+        products: JSON.stringify(products),
       },
     }),
   });

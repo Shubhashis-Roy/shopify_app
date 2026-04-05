@@ -3,6 +3,10 @@ Test Icon
 </div>
 
 <script>
+  window.SHOPIFY_CHATBOT_CONFIG = {
+    shop: "{{ shop.permanent_domain }}"
+  };
+
   (function () {
     var script = document.createElement('script');
     script.src = "https://shopify-app-95ky.onrender.com/widget";
