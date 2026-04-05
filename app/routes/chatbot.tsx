@@ -3,6 +3,13 @@ import ChatBotCore from "app/components/ChatBotCore";
 import { useSearchParams } from "react-router";
 // import { useSearchParams } from "@shopify/shopify-app-react-router";
 
+export const headers = () => {
+  return {
+    "Content-Security-Policy":
+      "frame-ancestors https://*.myshopify.com https://admin.shopify.com;",
+  };
+};
+
 export default function Chatbot() {
   const [params] = useSearchParams();
   const shop = params.get("shop");
