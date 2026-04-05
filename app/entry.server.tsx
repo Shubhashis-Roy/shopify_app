@@ -19,7 +19,7 @@ export default async function handleRequest(
   // ✅ ADD THIS (CRITICAL)
   responseHeaders.set(
     "Content-Security-Policy",
-    "frame-ancestors https://*.myshopify.com https://admin.shopify.com;",
+    "frame-ancestors https://*.myshopify.com https://admin.shopify.com https://shopify-app-95ky.onrender.com;",
   );
 
   const userAgent = request.headers.get("user-agent");
