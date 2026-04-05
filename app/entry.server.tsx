@@ -6,6 +6,23 @@ import { type EntryContext } from "react-router";
 import { isbot } from "isbot";
 import { addDocumentResponseHeaders } from "./shopify.server";
 
+// Helper to set dynamic CSP
+function setDynamicCSP(request: Request, headers: Headers) {
+  const url = new URL(request.url);
+  const shop =
+    url.searchParams.get("shop") ||
+    request.headers.get("x-shopify-shop-domain");
+
+  let csp =
+    "frame-ancestors https://*.myshopify.com https://admin.shopify.com https://shopify-app-95ky.onrender.com;";
+
+  if (shop && shop.includes(".myshopify.com")) {
+    csp = `frame-ancestors https://${shop} https://admin.shopify.com https://shopify-app-95ky.onrender.com;`;
+  }
+
+  headers.set("Content-Security-Policy", csp);
+}
+
 export const streamTimeout = 5000;
 
 export default async function handleRequest(
@@ -16,11 +33,8 @@ export default async function handleRequest(
 ) {
   addDocumentResponseHeaders(request, responseHeaders);
 
-  // ✅ ADD THIS (CRITICAL)
-  responseHeaders.set(
-    "Content-Security-Policy",
-    "frame-ancestors https://*.myshopify.com https://admin.shopify.com https://shopify-app-95ky.onrender.com;",
-  );
+  // Set dynamic CSP for all HTML responses
+  setDynamicCSP(request, responseHeaders);
 
   const userAgent = request.headers.get("user-agent");
   const callbackName = isbot(userAgent ?? "") ? "onAllReady" : "onShellReady";
@@ -33,7 +47,7 @@ export default async function handleRequest(
           const body = new PassThrough();
           const stream = createReadableStreamFromReadable(body);
 
-          responseHeaders.set("Content-Type", "text/html");
+          responseHeaders.set("Content-Type", "text/html; charset=utf-8");
           resolve(
             new Response(stream, {
               headers: responseHeaders,
@@ -52,8 +66,6 @@ export default async function handleRequest(
       },
     );
 
-    // Automatically timeout the React renderer after 6 seconds, which ensures
-    // React has enough time to flush down the rejected boundary contents
     setTimeout(abort, streamTimeout + 1000);
   });
 }

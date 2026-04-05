@@ -1,22 +1,34 @@
 import ChatBotCore from "app/components/ChatBotCore";
-// import { useSearchParams } from "@remix-run/react";
 import { useSearchParams } from "react-router";
-// import { useSearchParams } from "@shopify/shopify-app-react-router";
+import type { LoaderFunctionArgs } from "@remix-run/node";
 
-export const loader = () => {
-  return null;
-};
+export const loader = async ({ request }: LoaderFunctionArgs) => {
+  const url = new URL(request.url);
+  const shop = url.searchParams.get("shop");
 
-export const headers = () => {
-  return {
-    "Content-Security-Policy":
-      "frame-ancestors https://*.myshopify.com https://admin.shopify.com https://shopify-app-95ky.onrender.com;",
-  };
+  const headers = new Headers();
+
+  if (shop) {
+    // Dynamic frame-ancestors - This is the key fix
+    headers.set(
+      "Content-Security-Policy",
+      `frame-ancestors https://${shop} https://admin.shopify.com https://shopify-app-95ky.onrender.com;`,
+    );
+  } else {
+    // Fallback (should rarely happen)
+    headers.set(
+      "Content-Security-Policy",
+      `frame-ancestors https://*.myshopify.com https://admin.shopify.com https://shopify-app-95ky.onrender.com;`,
+    );
+  }
+
+  return new Response(null, { headers }); // loader returns null as before
 };
 
 export default function Chatbot() {
   const [params] = useSearchParams();
   const shop = params.get("shop");
+
   return (
     <div>
       <h3
@@ -30,7 +42,6 @@ export default function Chatbot() {
         AI Shoe Assistant
       </h3>
       <div id="chatbot-root">
-        {/* <ChatBotCore /> */}
         <ChatBotCore shop={shop} />
       </div>
     </div>

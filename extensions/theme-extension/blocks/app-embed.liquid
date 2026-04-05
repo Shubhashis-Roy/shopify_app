@@ -1,20 +1,17 @@
 <div id="chatbot-root">
-Test Icon
+  Test Icon
 </div>
-
 <script>
   window.SHOPIFY_CHATBOT_CONFIG = {
-    shop: "{{ shop.permanent_domain }}"
+    shop: "{{ request.host | append: '.myshopify.com' }}"   // More reliable
   };
-
   (function () {
     var script = document.createElement('script');
-    script.src = "https://shopify-app-95ky.onrender.com/widget?v=10";
+    script.src = "https://shopify-app-95ky.onrender.com/widget?v=11";  // bump version
     script.async = true;
     document.body.appendChild(script);
   })();
 </script>
-
 {% schema %}
   {
     "name": "App Embed",
